@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
+import logging
 from pathlib import Path
 
 import environ
@@ -160,3 +161,29 @@ MAILGUN_DOMAIN = env("MAILGUN_DOMAIN", default="")
 MAILGUN_FROM_EMAIL = env("MAILGUN_FROM_EMAIL", default="")
 
 FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", default="http://localhost:3000")
+
+# Logging
+LOG_LEVEL = env("DJANGO_LOG_LEVEL", default="INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        }
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+    "loggers": {
+        "django": {"level": LOG_LEVEL, "handlers": ["console"], "propagate": False},
+    },
+}

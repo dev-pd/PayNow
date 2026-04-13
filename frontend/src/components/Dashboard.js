@@ -18,7 +18,6 @@ function Dashboard() {
       axios
         .get(`${API_BASE_URL}/api/expenses/?username=${user.username}`)
         .then((response) => {
-          console.log("Fetched expenses data:", response.data);
           const transformedData = response.data.map((expense) => ({
             ...expense,
             amount_paid: parseFloat(expense.amount_paid),
