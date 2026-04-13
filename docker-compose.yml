@@ -1,0 +1,46 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      CELERY_BROKER_URL: amqp://rabbitmq:5672
+      CELERY_RESULT_BACKEND: rpc://
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+
+  celery:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      CELERY_BROKER_URL: amqp://rabbitmq:5672
+      CELERY_RESULT_BACKEND: rpc://
+    command: celery -A paynow worker --loglevel=info
+    depends_on:
+      - rabbitmq
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+    env_file:
+      - ./frontend/.env
+    environment:
+      WDS_SOCKET_PORT: "0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
