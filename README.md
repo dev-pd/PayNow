@@ -1,32 +1,30 @@
-## PayNow Pulse (recommended product name)
+## PayNow Pulse
 
-**PayNow Pulse** is a full‑stack personal finance dashboard that helps users track monthly expenses, visualize spend breakdowns, and pay down balances via Stripe—backed by a Django REST API and a React UI. Background jobs (Celery) send payment confirmation emails (Mailgun).
-
-### Why the rename?
-“Kleeviyo Pay” reads like an internal/placeholder name. If you’re pushing to GitHub as a product-ready repo, **PayNow Pulse** communicates: payments + insights, without tying you to a brand that isn’t defined yet.
-
-If you want alternatives:
-- **PayNow Ledger** (expense tracking emphasis)
-- **PayNow Insights** (analytics emphasis)
-- **PayNow Paydown** (payments emphasis)
+**PayNow Pulse** is a full‑stack expense analytics + payments dashboard. Users submit monthly categorized expenses, view interactive charts, and pay down balances via Stripe. The backend is a Django REST API; the frontend is a React UI. Transactional emails are sent asynchronously via Celery (RabbitMQ) and Mailgun.
 
 ---
 
-## Product overview
+## Features
 
-### What it does today
-- **Auth**: register + login (basic; no JWT/session yet)
-- **Expenses**: submit monthly category totals
-- **Dashboard**: pie/bar/doughnut charts for category distribution + paid vs remaining
+- **Auth**: register + login
+- **Expense tracking**: monthly category totals per user
+- **Analytics**: pie/bar/doughnut charts (category distribution + paid vs remaining)
 - **Payments**: Stripe PaymentIntent flow
-- **Email**: payment confirmation email sent asynchronously via Celery + Mailgun
-
-### What “Kleeviyo Pay” is right now
-It’s simply the old name for the same app. There’s no separate “Kleeviyo” service in this repo—so we should brand it consistently as **PayNow Pulse**.
+- **Async email**: Celery task sends payment confirmation via Mailgun
 
 ---
 
-## Architecture
+## Tech stack
+
+- **Frontend**: React, Tailwind CSS, Axios, Chart.js, Stripe Elements
+- **Backend**: Django, Django REST Framework
+- **Async**: Celery + RabbitMQ
+- **Email**: Mailgun
+- **Database**: SQLite (default), MySQL (optional via env)
+
+---
+
+## Architecture (high level)
 
 ### High-level components
 - **Frontend** (`frontend/`): React + Tailwind + Chart.js + Stripe Elements
@@ -34,13 +32,12 @@ It’s simply the old name for the same app. There’s no separate “Kleeviyo�
 - **Async worker** (`celery`): sends Mailgun email notifications
 - **Broker** (RabbitMQ by default): backs Celery
 
-### Data model (current)
+### Data model
 - **`Expense`**: per-user, per-month expense totals across categories, with derived fields:
   - `total_expenses` = sum(categories)
   - `remaining_amount` = `total_expenses - amount_paid`
 
-### API (current routes)
-Backend routes (prefix is handled in `backend/users/urls.py`):
+### API routes
 - `POST /api/register/`
 - `POST /api/login/`
 - `GET /api/expenses/?username=<username>`
@@ -50,18 +47,16 @@ Backend routes (prefix is handled in `backend/users/urls.py`):
 
 ---
 
-## Configuration (no hardcoded secrets)
-
-This repo was updated to remove committed keys and move configuration to environment variables.
+## Configuration
 
 ### Backend env (`backend/.env`)
-Copy:
-- `backend/.env.example` → `backend/.env`
+Copy `backend/.env.example` → `backend/.env`.
 
-Core variables:
+Key variables:
 - **`DJANGO_SECRET_KEY`**: required in production
 - **`DJANGO_DEBUG`**: `true` in local dev, `false` in prod
 - **`DJANGO_ALLOWED_HOSTS`**: comma-separated list
+- **`DJANGO_LOG_LEVEL`**: logging level (ex: `INFO`)
 - **DB**: defaults to SQLite, but can be switched to MySQL via env
 - **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`
 - **Mailgun**: `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_FROM_EMAIL`
@@ -69,10 +64,9 @@ Core variables:
 - **Frontend**: `FRONTEND_BASE_URL` used for redirect URLs
 
 ### Frontend env (`frontend/.env`)
-Copy:
-- `frontend/.env.example` → `frontend/.env`
+Copy `frontend/.env.example` → `frontend/.env`.
 
-Core variables:
+Key variables:
 - **`REACT_APP_API_BASE_URL`**: where React calls the Django API (ex: `http://127.0.0.1:8000`)
 - **`REACT_APP_STRIPE_PUBLISHABLE_KEY`**: Stripe publishable key for Stripe Elements
 
@@ -150,41 +144,6 @@ docker compose down
 # or (older installs)
 docker-compose down
 ```
-
----
-
-## Suggested architectural upgrades (recommended before “real product”)
-
-### Security & auth
-- **Replace “dummy_token” login** with real auth:
-  - Use **JWT (SimpleJWT)** or session auth
-  - Return access/refresh tokens on login
-  - Store tokens securely (httpOnly cookie preferred)
-- **Stop using `username` query params** for access control. Use the authenticated user.
-- **Lock down CORS**: switch from `CORS_ALLOW_ALL_ORIGINS=True` to an allowlist via env.
-
-### Payments (Stripe)
-- Use a **server-generated PaymentIntent** based on trusted amounts (do not trust client “amount”).
-- Store a **Payment** record and Stripe IDs in DB for reconciliation.
-- Make `payment_complete` robust:
-  - Add metadata to PaymentIntent (ex: user id)
-  - Prefer **webhooks** for final payment state instead of relying on redirects
-
-### Email
-- Use templated transactional emails (subject/body per event).
-- Add retries/backoff for Mailgun failures; store delivery status.
-
-### Settings & deployment
-- Split settings into `settings/base.py`, `settings/dev.py`, `settings/prod.py`
-- Add `DJANGO_DEBUG=false`, `SECURE_SSL_REDIRECT`, secure cookies, etc.
-- Add Docker + docker-compose for a one-command dev stack (Django + React + RabbitMQ + DB)
-
----
-
-## Repository hygiene (before pushing to GitHub)
-- Do **not** commit `.env` files (only `.env.example`)
-- Remove OS artifacts like `.DS_Store`
-- Ensure `backend/.gitignore` and `frontend/.gitignore` cover secrets and build outputs
 
 ---
 
