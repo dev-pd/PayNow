@@ -1,0 +1,70 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Env files (commit .env.example instead)
+.env
+.env.*
+!.env.example
+
+## =========================
+## Python / Django (backend)
+## =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+.Python
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+## =========================
+## Node / React (frontend)
+## =========================
+node_modules/
+build/
+dist/
+coverage/
+.pnp
+.pnp.js
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## =========================
+## Editor / OS
+## =========================
+.vscode/
+.idea/
+
